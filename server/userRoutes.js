@@ -6,7 +6,10 @@ const db = require('./database')
 
 const router = express.Router()
 
-// Verify JWT and administrator role
+// ======================================================
+// AUTHENTICATION AND ADMINISTRATOR VERIFICATION
+// ======================================================
+
 const verifyAdmin = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization
@@ -30,6 +33,7 @@ const verifyAdmin = (req, res, next) => {
 
         req.user = decoded
         next()
+
     } catch (error) {
         return res.status(401).json({
             success: false,
@@ -38,7 +42,47 @@ const verifyAdmin = (req, res, next) => {
     }
 }
 
-// Create student or examiner account
+// ======================================================
+// GET ALL STUDENTS AND EXAMINERS
+// GET /api/v1/users
+// ======================================================
+
+router.get('/', verifyAdmin, (req, res) => {
+    try {
+        const users = db.prepare(`
+            SELECT
+                user_id,
+                university_roll_no,
+                name,
+                email,
+                role,
+                created_at
+            FROM users
+            WHERE role IN ('STUDENT', 'EXAMINER')
+            ORDER BY created_at DESC
+        `).all()
+
+        res.json({
+            success: true,
+            count: users.length,
+            users
+        })
+
+    } catch (error) {
+        console.error('User retrieval error:', error.message)
+
+        res.status(500).json({
+            success: false,
+            message: 'Could not retrieve user accounts.'
+        })
+    }
+})
+
+// ======================================================
+// CREATE STUDENT OR EXAMINER ACCOUNT
+// POST /api/v1/users/create
+// ======================================================
+
 router.post('/create', verifyAdmin, (req, res) => {
     try {
         const {
@@ -49,7 +93,13 @@ router.post('/create', verifyAdmin, (req, res) => {
             role
         } = req.body
 
-        if (!university_roll_no || !name || !email || !password || !role) {
+        if (
+            !university_roll_no ||
+            !name ||
+            !email ||
+            !password ||
+            !role
+        ) {
             return res.status(400).json({
                 success: false,
                 message: 'All fields are required.'
@@ -90,7 +140,11 @@ router.post('/create', verifyAdmin, (req, res) => {
         )
 
         db.prepare(`
-            INSERT INTO audit_logs (user_id, action, details)
+            INSERT INTO audit_logs (
+                user_id,
+                action,
+                details
+            )
             VALUES (?, ?, ?)
         `).run(
             req.user.user_id,
@@ -121,7 +175,11 @@ router.post('/create', verifyAdmin, (req, res) => {
     }
 })
 
-// Get audit logs (Administrator only)
+// ======================================================
+// GET SYSTEM AUDIT LOGS
+// GET /api/v1/users/audit-logs
+// ======================================================
+
 router.get('/audit-logs', verifyAdmin, (req, res) => {
     try {
         const logs = db.prepare(`

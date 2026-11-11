@@ -10,6 +10,7 @@ const db = require('./database')
 const authRoutes = require('./authRoutes')
 const userRoutes = require('./userRoutes')
 const courseRoutes = require('./courseRoutes')
+const examRoutes = require('./examRoutes')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -51,6 +52,8 @@ app.get('/api/database', (req, res) => {
             tables: tables.map(table => table.name)
         })
     } catch (error) {
+        console.error('Database check error:', error)
+
         res.status(500).json({
             message: 'Database error',
             error: error.message
@@ -67,6 +70,27 @@ app.use('/api/v1/users', userRoutes)
 // Course enrolment routes
 app.use('/api/v1/courses', courseRoutes)
 
+// Examination and question management routes
+app.use('/api/v1/exams', examRoutes)
+
+// Handle unknown API routes
+app.use('/api/*path', (req, res) => {
+    res.status(404).json({
+        success: false,
+        message: 'API endpoint not found'
+    })
+})
+
+// Global error handler
+app.use((error, req, res, next) => {
+    console.error('Server error:', error)
+
+    res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+    })
+})
+
 // Start server
 app.listen(PORT, () => {
     console.log('--------------------------------')
@@ -77,6 +101,8 @@ app.listen(PORT, () => {
     console.log('Authentication: Enabled')
     console.log('User Management: Enabled')
     console.log('Course Enrolment: Enabled')
+    console.log('Examination Management: Enabled')
     console.log('Status: Running')
     console.log('--------------------------------')
 })
+

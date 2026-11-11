@@ -3,8 +3,24 @@ import { useState } from 'react'
 import Login from './components/Login'
 import './App.css'
 
+function hasActiveSession() {
+  const token = sessionStorage.getItem('examease_token')
+  const user = sessionStorage.getItem('examease_user')
+
+  if (!token || !user) return false
+
+  try {
+    const parsedUser = JSON.parse(user)
+    return Boolean(parsedUser && parsedUser.role)
+  } catch {
+    sessionStorage.removeItem('examease_token')
+    sessionStorage.removeItem('examease_user')
+    return false
+  }
+}
+
 function App() {
-  const [showLogin, setShowLogin] = useState(false)
+  const [showLogin, setShowLogin] = useState(hasActiveSession)
 
   if (showLogin) {
     return <Login />

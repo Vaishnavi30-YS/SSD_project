@@ -6,11 +6,37 @@ import StudentDashboard from './StudentDashboard'
 import ExaminerDashboard from './ExaminerDashboard'
 import AdminDashboard from './AdminDashboard'
 
+function getStoredUser() {
+    const token = sessionStorage.getItem('examease_token')
+    const storedUser = sessionStorage.getItem('examease_user')
+
+    if (!token || !storedUser) return null
+
+    try {
+        const user = JSON.parse(storedUser)
+
+        if (!user || !user.role) return null
+
+        return user
+    } catch {
+        sessionStorage.removeItem('examease_token')
+        sessionStorage.removeItem('examease_user')
+        return null
+    }
+}
+
 function Login() {
     const [registrationNumber, setRegistrationNumber] = useState('')
     const [password, setPassword] = useState('')
-    const [userRole, setUserRole] = useState('')
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+    const [userRole, setUserRole] = useState(
+        () => getStoredUser()?.role || ''
+    )
+
+    const [isLoggedIn, setIsLoggedIn] = useState(
+        () => Boolean(getStoredUser())
+    )
+
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
@@ -21,7 +47,9 @@ function Login() {
         const rollNo = registrationNumber.trim()
 
         if (!rollNo || !password) {
-            setError('Please enter your registration number and password.')
+            setError(
+                'Please enter your registration number and password.'
+            )
             return
         }
 
@@ -45,26 +73,60 @@ function Login() {
             const data = await response.json()
 
             if (!response.ok || !data.success) {
-                setError(data.message || 'Invalid login credentials.')
+                setError(
+                    data.message || 'Invalid login credentials.'
+                )
                 return
             }
 
             if (!data.token || !data.user || !data.user.role) {
-                setError('Invalid response received from server.')
+                setError(
+                    'Invalid response received from server.'
+                )
                 return
             }
 
-            sessionStorage.setItem('examease_token', data.token)
+            // Normalize user details without losing original API fields.
+            const loggedInUser = {
+                ...data.user,
+
+                name:
+                    data.user.name ||
+                    data.user.full_name ||
+                    data.user.username ||
+                    data.user.student_name ||
+                    'Student',
+
+                university_roll_no:
+                    data.user.university_roll_no ||
+                    data.user.registration_number ||
+                    data.user.reg_no ||
+                    data.user.register_number ||
+                    data.user.usn ||
+                    data.user.registrationNumber ||
+                    rollNo
+            }
+
+            // Save authentication session.
             sessionStorage.setItem(
-                'examease_user',
-                JSON.stringify(data.user)
+                'examease_token',
+                data.token
             )
 
-            setUserRole(data.user.role)
+            sessionStorage.setItem(
+                'examease_user',
+                JSON.stringify(loggedInUser)
+            )
+
+            setUserRole(loggedInUser.role)
             setIsLoggedIn(true)
+
+            setPassword('')
+            setError('')
 
         } catch (error) {
             console.error('Login error:', error)
+
             setError(
                 'Cannot connect to the server. Check whether the backend is running.'
             )
@@ -96,7 +158,8 @@ function Login() {
                 return <AdminDashboard />
 
             default:
-                return <div>Invalid user role.</div>
+                handleLogout()
+                return null
         }
     }
 
@@ -119,7 +182,9 @@ function Login() {
                         type="text"
                         placeholder="Enter registration number"
                         value={registrationNumber}
-                        onChange={(e) => setRegistrationNumber(e.target.value)}
+                        onChange={(e) =>
+                            setRegistrationNumber(e.target.value)
+                        }
                         autoComplete="username"
                         required
                     />
@@ -133,7 +198,9 @@ function Login() {
                         type="password"
                         placeholder="Enter password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) =>
+                            setPassword(e.target.value)
+                        }
                         autoComplete="current-password"
                         required
                     />
@@ -154,6 +221,7 @@ function Login() {
                     href="/"
                     onClick={(e) => {
                         e.preventDefault()
+                        handleLogout()
                         window.location.reload()
                     }}
                 >

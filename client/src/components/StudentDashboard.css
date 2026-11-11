@@ -11,6 +11,8 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 10px #e2e8f0;
+    position: relative;
+    z-index: 10;
 }
 
 .dashboard-nav h2 {
@@ -19,15 +21,32 @@
 }
 
 .student-profile {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 15px;
+}
+
+.profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    border: none;
     color: #475569;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.profile-trigger:hover {
+    color: #2563eb;
 }
 
 .profile-circle {
     width: 38px;
     height: 38px;
+    flex-shrink: 0;
     border-radius: 50%;
     background: #2563eb;
     color: white;
@@ -35,6 +54,116 @@
     justify-content: center;
     align-items: center;
     font-weight: bold;
+    font-size: 16px;
+}
+
+.profile-arrow {
+    font-size: 10px;
+    color: #64748b;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    right: 0;
+    width: 280px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.16);
+    padding: 16px;
+    z-index: 100;
+    animation: profileAppear 0.18s ease;
+}
+
+@keyframes profileAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.profile-dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 15px;
+}
+
+.dropdown-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+}
+
+.profile-user-info {
+    min-width: 0;
+}
+
+.profile-user-info h3 {
+    font-size: 15px;
+    color: #1e293b;
+    overflow-wrap: anywhere;
+}
+
+.profile-user-info p {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px 0;
+    border-top: 1px solid #f1f5f9;
+}
+
+.profile-details span {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.profile-details strong {
+    font-size: 14px;
+    color: #1e293b;
+    overflow-wrap: anywhere;
+}
+
+.profile-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 8px 0;
+}
+
+.logout-button {
+    width: 100%;
+    padding: 11px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff1f2;
+    color: #dc2626;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.logout-button:hover {
+    background: #ffe4e6;
+}
+
+.logout-button span {
+    font-size: 19px;
 }
 
 .dashboard-content {
@@ -95,12 +224,14 @@
     background: white;
     padding: 25px;
     border-radius: 12px;
+    margin-bottom: 22px;
 }
 
 .section-heading {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     margin-bottom: 20px;
 }
 
@@ -164,6 +295,11 @@
     cursor: not-allowed;
 }
 
+.dashboard-error {
+    color: #dc2626;
+    margin: 10px 0;
+}
+
 .dashboard-note {
     margin-top: 25px;
     padding: 22px;
@@ -189,6 +325,23 @@
 }
 
 @media (max-width: 650px) {
+    .dashboard-nav {
+        padding: 15px 5%;
+    }
+
+    .dashboard-nav h2 {
+        font-size: 21px;
+    }
+
+    .profile-trigger {
+        gap: 7px;
+        font-size: 13px;
+    }
+
+    .profile-dropdown {
+        width: min(280px, calc(100vw - 30px));
+    }
+
     .dashboard-stats {
         grid-template-columns: 1fr;
     }
@@ -202,7 +355,20 @@
         align-items: flex-start;
     }
 
+    .welcome-section {
+        padding: 25px;
+    }
+
     .welcome-section h1 {
         font-size: 23px;
+    }
+
+    .welcome-icon {
+        font-size: 40px;
+    }
+
+    .section-heading {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
